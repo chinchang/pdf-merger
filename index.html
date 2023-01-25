@@ -100,7 +100,7 @@
         y: 30,
       });
 
-      download(await pdfDoc1.save(), `${fileName}`, "application/pdf");
+      download(await pdfDoc1.save(), `${fileName}-output`, "application/pdf");
       //   fs.writeFileSync(`./output/${file}.pdf`, await pdfDoc1.save());
       console.log(`done successfully! - ${fileName}`);
     }
