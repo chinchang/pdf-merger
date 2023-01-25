@@ -1,0 +1,108 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="https://unpkg.com/pdf-lib@1.4.0"></script>
+    <script src="https://unpkg.com/downloadjs@1.4.7"></script>
+  </head>
+
+  <body>
+    <h1>Tata1Mg File Printer</h1>
+    <p>Click the button to modify an existing PDF document with</p>
+    <input type="file" id="files" multiple />
+    <p class="small">(Your browser will download the resulting file)</p>
+  </body>
+
+  <script>
+    const { degrees, PDFDocument, rgb, StandardFonts } = PDFLib;
+    files.addEventListener("change", async (e) => {
+      const files = e.target.files;
+      console.log(files);
+      const map = {};
+      // get bytes from files
+      [...files].forEach((file) => {
+        console.log(file.name);
+
+        if (file.name.match(/\d\d\.pdf/)) {
+          map[file.name] = map[file.name] || [];
+          map[file.name][0] = file;
+        } else {
+          const baseName = file.name.replace(/(\d\d)s/, "$1");
+          map[baseName] = map[baseName] || [];
+          map[baseName][1] = file;
+        }
+      });
+
+      Object.keys(map).forEach(async (key) => {
+        const [file1, file2] = map[key];
+        const bytes1 = await file1.arrayBuffer();
+        const bytes2 = await file2.arrayBuffer();
+        process(key, bytes1, bytes2);
+      });
+      //   const bytes = await files[0].arrayBuffer();
+
+      //   const pdfDoc = await PDFDocument.load(bytes);
+      //   download(bytes, "pdf-lib_modification_example.pdf", "application/pdf");
+    });
+
+    async function modifyPdf() {
+      // Fetch an existing PDF document
+      const url = "https://pdf-lib.js.org/assets/with_update_sections.pdf";
+      const existingPdfBytes = await fetch(url).then((res) =>
+        res.arrayBuffer()
+      );
+
+      // Load a PDFDocument from the existing PDF bytes
+      const pdfDoc = await PDFDocument.load(existingPdfBytes);
+
+      // Embed the Helvetica font
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+      // Get the first page of the document
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
+
+      // Get the width and height of the first page
+      const { width, height } = firstPage.getSize();
+
+      // Draw a string of text diagonally across the first page
+      firstPage.drawText("This text was added with JavaScript!", {
+        x: 5,
+        y: height / 2 + 300,
+        size: 50,
+        font: helveticaFont,
+        color: rgb(0.95, 0.1, 0.1),
+        rotate: degrees(-45),
+      });
+
+      // Serialize the PDFDocument to bytes (a Uint8Array)
+      const pdfBytes = await pdfDoc.save();
+
+      // Trigger the browser to download the PDF document
+      download(pdfBytes, "pdf-lib_modification_example.pdf", "application/pdf");
+    }
+
+    async function process(fileName, pdfBytes1, pdfBytes2) {
+      // Load the input PDF file
+      //   const pdfBytes1 = fs.readFileSync(file);
+      //   const pdfBytes2 = fs.readFileSync(file.replace(/(\d\d)\.pdf/, "$1s.pdf"));
+      // console.log(file.replace(/(\d\d)\.pdf/, "$1s.pdf"));
+
+      // async function start() {
+      const pdfDoc1 = await PDFDocument.load(pdfBytes1);
+
+      // Get the first page of the PDF
+      const page1 = pdfDoc1.getPages()[0];
+
+      // Draw the overlay page on top of the input page
+      const [embed] = await pdfDoc1.embedPdf(pdfBytes2);
+      page1.drawPage(embed, {
+        x: 400,
+        y: 30,
+      });
+
+      download(await pdfDoc1.save(), `${fileName}`, "application/pdf");
+      //   fs.writeFileSync(`./output/${file}.pdf`, await pdfDoc1.save());
+      console.log(`done successfully! - ${fileName}`);
+    }
+  </script>
+</html>
