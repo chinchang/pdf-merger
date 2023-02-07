@@ -32,16 +32,25 @@
         }
       });
 
-      Object.keys(map).forEach(async (key) => {
+      let promises = Object.keys(map).map(async (key) => {
         const [file1, file2] = map[key];
         const bytes1 = await file1.arrayBuffer();
         const bytes2 = await file2.arrayBuffer();
-        process(key, bytes1, bytes2);
+        return process(key, bytes1, bytes2);
       });
-      //   const bytes = await files[0].arrayBuffer();
 
-      //   const pdfDoc = await PDFDocument.load(bytes);
-      //   download(bytes, "pdf-lib_modification_example.pdf", "application/pdf");
+      Promise.all(promises).then(async (pdfDocs) => {
+        for (let i = 1; i < pdfDocs.length; i++) {
+          //   pdfDocs[0].addPage(pdfDocs[i].getPages()[0]);
+          const copiedPages = await pdfDocs[0].copyPages(pdfDocs[i], [0]);
+          copiedPages.forEach((page) => pdfDocs[0].addPage(page));
+        }
+        download(
+          await pdfDocs[0].save(),
+          `${files[0].name}`.replace(/\s(\d\d)s*/, ""),
+          "application/pdf"
+        );
+      });
     });
 
     async function modifyPdf() {
@@ -100,13 +109,15 @@
         y: 30,
       });
 
-      download(
-        await pdfDoc1.save(),
-        `${fileName}`.replace(".pdf", "-output.pdf"),
-        "application/pdf"
-      );
+      await pdfDoc1.save();
+      return pdfDoc1;
+      //   download(
+      //     await pdfDoc1.save(),
+      //     `${fileName}`.replace(".pdf", "-output.pdf"),
+      //     "application/pdf"
+      //   );
       //   fs.writeFileSync(`./output/${file}.pdf`, await pdfDoc1.save());
-      console.log(`done successfully! - ${fileName}`);
+      //   console.log(`done successfully! - ${fileName}`);
     }
   </script>
 </html>
