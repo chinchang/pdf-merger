@@ -3,13 +3,35 @@
     <meta charset="utf-8" />
     <script src="https://unpkg.com/pdf-lib@1.4.0"></script>
     <script src="https://unpkg.com/downloadjs@1.4.7"></script>
+    <style>
+      :root {
+        --clr-text: #000;
+        --clr-text-light: color-mix(in lch, var(--clr-text), white);
+      }
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+          sans-serif;
+        display: grid;
+        place-content: center;
+        min-height: 100vh;
+      }
+      h1 {
+        font-weight: 800;
+      }
+      .light {
+        color: var(--clr-text-light);
+      }
+    </style>
   </head>
 
   <body>
-    <h1>Tata1Mg File Printer</h1>
-    <p>Click the button to modify an existing PDF document with</p>
-    <input type="file" id="files" multiple />
-    <p class="small">(Your browser will download the resulting file)</p>
+    <section>
+      <h1>Tata1Mg File Merger/Printer</h1>
+      <p>Click the button to select the files to merge</p>
+      <input type="file" id="files" multiple />
+      <p class="light">(Your browser will download the resulting file)</p>
+    </section>
   </body>
 
   <script>
@@ -105,8 +127,8 @@
       // Draw the overlay page on top of the input page
       const [embed] = await pdfDoc1.embedPdf(pdfBytes2);
       page1.drawPage(embed, {
-        x: 400,
-        y: 30,
+        x: 410,
+        y: -30,
       });
 
       await pdfDoc1.save();
